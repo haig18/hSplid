@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>hSplid</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏔️</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+
+<!-- PANTALLA DE LOGIN / REGISTRO -->
+<div id="authScreen" class="gate hidden">
+  <div class="gate-card" style="max-width:300px">
+    <div class="gate-stamp">🏔️</div>
+    <h1 id="authTitle">Iniciar sesión</h1>
+    <input id="authEmail" type="email" placeholder="Email" autocomplete="email" inputmode="email" />
+    <input id="authPassword" type="password" placeholder="Contraseña" autocomplete="current-password" />
+    <button id="authSubmitBtn" class="btn btn-primary" style="width:100%; margin-top:6px;">Entrar</button>
+    <p id="authError" class="error hidden"></p>
+    <p id="authInfo" class="small muted hidden" style="margin-top:10px;"></p>
+    <p class="small" style="margin-top:16px;">
+      <a href="#" id="authToggleMode">¿No tienes cuenta? Crea una</a>
+    </p>
+    <p class="small"><a href="#" id="authForgotBtn">¿Olvidaste tu contraseña?</a></p>
+  </div>
+</div>
+
+<!-- PANTALLA DE GRUPOS -->
+<div id="groupsScreen" class="app hidden">
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="stamp-icon">🏔️</span>
+      <div>
+        <h1>Tus grupos</h1>
+        <p id="userEmail" class="muted small"></p>
+      </div>
+    </div>
+    <button id="logoutBtn" class="btn btn-ghost btn-small">Salir</button>
+  </header>
+  <main class="content">
+    <div id="groupsList" class="expenses-list"></div>
+    <p id="groupsEmpty" class="empty hidden">Todavía no perteneces a ningún grupo.</p>
+    <div style="display:flex; gap:8px; margin-top:16px;">
+      <button id="createGroupBtn" class="btn btn-primary" style="flex:1;">+ Crear grupo</button>
+      <button id="joinGroupBtn" class="btn btn-ghost" style="flex:1;">Unirme con código</button>
+    </div>
+  </main>
+</div>
+
+<!-- DETALLE DE GRUPO (la app de gastos en sí) -->
+<div id="app" class="app hidden">
+
+  <!-- Cabecera -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button id="backToGroupsBtn" class="btn-icon" style="font-size:1.4rem; margin-right:2px;">←</button>
+      <span class="stamp-icon" id="groupIcon">🏔️</span>
+      <div>
+        <h1 id="groupName">Cargando…</h1>
+        <p id="groupSub" class="muted">cargando…</p>
+      </div>
+    </div>
+    <button id="newExpenseBtn" class="btn btn-primary">+ Gasto</button>
+  </header>
+
+  <!-- Barra de filtros (afecta a Resumen, Gastos y Estadísticas) -->
+  <section class="filterbar" id="filterbar">
+    <button class="filter-toggle" id="filterToggle">
+      <span>Filtros</span>
+      <span id="filterCount" class="filter-count hidden">0</span>
+      <span class="chev">▾</span>
+    </button>
+    <div class="filter-panel hidden" id="filterPanel">
+      <div class="filter-row">
+        <label>Buscar</label>
+        <input type="text" id="fSearch" placeholder="Descripción o nota…" />
+      </div>
+      <div class="filter-row">
+        <label>Categorías</label>
+        <div id="fCategories" class="chip-group"></div>
+      </div>
+      <div class="filter-row">
+        <label>Miembros</label>
+        <div id="fParticipants" class="chip-group"></div>
+      </div>
+      <div class="filter-row two-col">
+        <div>
+          <label>Desde</label>
+          <input type="date" id="fDateFrom" />
+        </div>
+        <div>
+          <label>Hasta</label>
+          <input type="date" id="fDateTo" />
+        </div>
+      </div>
+      <button id="filterClear" class="btn btn-ghost btn-small">Limpiar filtros</button>
+    </div>
+  </section>
+
+  <!-- Navegación por pestañas -->
+  <nav class="tabs">
+    <button class="tab active" data-tab="dashboard">Resumen</button>
+    <button class="tab" data-tab="expenses">Gastos</button>
+    <button class="tab" data-tab="stats">Estadísticas</button>
+    <button class="tab" data-tab="participants">Miembros</button>
+  </nav>
+
+  <main class="content">
+
+    <!-- RESUMEN -->
+    <section id="tab-dashboard" class="tabpanel">
+      <div class="card total-card">
+        <div class="ticket-dash"></div>
+        <p id="totalLabel" class="muted small">Total del grupo (según filtros)</p>
+        <p id="totalAmount" class="total-amount">0,00 €</p>
+        <p id="totalCount" class="muted small">0 gastos</p>
+      </div>
+
+      <button id="exportPdfBtn" class="btn btn-ghost btn-small" style="width:100%; margin-bottom:14px;">📄 Exportar PDF</button>
+
+      <h2 class="section-title">Balances</h2>
+      <div id="balancesList" class="card ledger"></div>
+
+      <h2 class="section-title">Para saldar cuentas</h2>
+      <div id="settleList" class="card ledger"></div>
+
+      <h2 class="section-title">Pagos registrados</h2>
+      <div id="paymentsList" class="card ledger"></div>
+    </section>
+
+    <!-- GASTOS -->
+    <section id="tab-expenses" class="tabpanel hidden">
+      <div id="expensesList" class="expenses-list"></div>
+      <p id="expensesEmpty" class="empty hidden">No hay gastos que coincidan con los filtros.</p>
+    </section>
+
+    <!-- ESTADÍSTICAS -->
+    <section id="tab-stats" class="tabpanel hidden">
+      <h2 id="statsByCategoryTitle" class="section-title">Gasto por categoría</h2>
+      <div id="statsByCategory" class="card ledger"></div>
+
+      <h2 class="section-title">Gasto por miembro (lo que pagó cada uno)</h2>
+      <div id="statsByParticipant" class="card ledger"></div>
+    </section>
+
+    <!-- MIEMBROS -->
+    <section id="tab-participants" class="tabpanel hidden">
+      <div class="card">
+        <p class="muted small" style="margin:0 0 6px;">Código de invitación</p>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <p id="joinCodeDisplay" class="total-amount" style="font-size:1.5rem; margin:0;">------</p>
+          <button id="copyJoinCodeBtn" class="btn btn-ghost btn-small">Copiar</button>
+        </div>
+        <p class="muted small" style="margin-top:8px;">Compártelo con quien quieras que se una a este grupo.</p>
+      </div>
+      <div id="participantsList" class="card ledger"></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Modal: crear grupo -->
+<div id="createGroupModal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2>Nuevo grupo</h2>
+      <button id="closeCreateGroupModal" class="btn-icon">✕</button>
+    </div>
+    <div class="modal-body">
+      <label>Nombre del grupo</label>
+      <input type="text" id="newGroupName" placeholder="Ej. Valle de Arán" />
+      <label>Tu nombre en este grupo</label>
+      <input type="text" id="newGroupMyName" placeholder="Ej. Dani" />
+      <p id="createGroupError" class="error hidden"></p>
+    </div>
+    <div class="modal-footer">
+      <button id="saveCreateGroupBtn" class="btn btn-primary">Crear</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: unirse a grupo -->
+<div id="joinGroupModal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2>Unirme a un grupo</h2>
+      <button id="closeJoinGroupModal" class="btn-icon">✕</button>
+    </div>
+    <div class="modal-body">
+      <label>Código de invitación</label>
+      <input type="text" id="joinGroupCode" placeholder="Ej. AB12CD" style="text-transform:uppercase;" />
+      <label>Tu nombre en este grupo</label>
+      <input type="text" id="joinGroupMyName" placeholder="Ej. Ramón" />
+      <p id="joinGroupError" class="error hidden"></p>
+    </div>
+    <div class="modal-footer">
+      <button id="saveJoinGroupBtn" class="btn btn-primary">Unirme</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de nuevo/editar gasto -->
+<div id="expenseModal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2 id="expenseModalTitle">Nuevo gasto</h2>
+      <button id="closeExpenseModal" class="btn-icon">✕</button>
+    </div>
+    <div class="modal-body">
+      <label>Descripción</label>
+      <input type="text" id="exDescription" placeholder="Ej. Cena en el puerto" />
+
+      <label>Importe (€)</label>
+      <input type="number" id="exAmount" step="0.01" min="0" placeholder="0,00" />
+
+      <label>Categoría</label>
+      <select id="exCategory"></select>
+
+      <label>Pagado por</label>
+      <select id="exPaidBy"></select>
+
+      <label>Fecha</label>
+      <input type="date" id="exDate" />
+
+      <label>Repartir entre</label>
+      <div id="exSplitParticipants" class="split-participants"></div>
+
+      <div class="split-mode-row">
+        <button id="splitEqualBtn" class="btn btn-ghost btn-small active">Reparto igual</button>
+        <button id="splitCustomBtn" class="btn btn-ghost btn-small">Importes personalizados</button>
+      </div>
+      <div id="customSplitBox" class="hidden"></div>
+      <p id="splitError" class="error hidden"></p>
+
+      <label>Notas (opcional)</label>
+      <textarea id="exNotes" rows="2" placeholder="Detalles adicionales…"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button id="deleteExpenseBtn" class="btn btn-danger hidden">Eliminar</button>
+      <button id="saveExpenseBtn" class="btn btn-primary">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de detalle de gasto -->
+<div id="detailModal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2>Detalle del gasto</h2>
+      <button id="closeDetailModal" class="btn-icon">✕</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+    <div class="modal-footer">
+      <button id="editFromDetailBtn" class="btn btn-primary">Editar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de registrar pago (saldar deuda) -->
+<div id="settleModal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2>Registrar pago</h2>
+      <button id="closeSettleModal" class="btn-icon">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-line"><span>De</span><strong id="settleFromName"></strong></div>
+      <div class="detail-line"><span>Para</span><strong id="settleToName"></strong></div>
+      <label>Importe (€)</label>
+      <input type="number" id="settleAmount" step="0.01" min="0" />
+      <label>Fecha</label>
+      <input type="date" id="settleDate" />
+      <label>Nota (opcional)</label>
+      <input type="text" id="settleNote" placeholder="Ej. Bizum" />
+    </div>
+    <div class="modal-footer">
+      <button id="saveSettleBtn" class="btn btn-primary">Marcar como pagado</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

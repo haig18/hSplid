@@ -1,0 +1,286 @@
+/* ============================================================
+   Tokens
+   ============================================================ */
+:root{
+  --paper: #F2F1EA;
+  --paper-raised: #FBFAF6;
+  --ink: #24261F;
+  --ink-soft: #5B5D51;
+  --muted: #8D9285;
+  --line: #D8D6C8;
+  --credit: #1F7A4D;      /* le deben / a favor */
+  --credit-bg: #E4F0E6;
+  --debit: #B23A2E;       /* debe */
+  --debit-bg: #F5E3DF;
+  --stamp: #3D4F91;       /* acento tinta azul, categorías / acciones secundarias */
+  --stamp-bg: #E3E6F2;
+  --radius: 10px;
+  --font-display: "Archivo Black", sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+}
+
+*{ box-sizing: border-box; }
+html,body{ height: 100%; }
+body{
+  margin:0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+a{ color: var(--stamp); text-decoration: none; }
+a:active{ opacity: 0.7; }
+
+.hidden{ display:none !important; }
+button{ font-family: inherit; cursor:pointer; }
+input, select, textarea{ font-family: inherit; }
+
+/* iOS Safari hace zoom automático al enfocar un campo si su
+   font-size es menor de 16px. Forzamos 16px en todos los campos
+   para evitarlo (el diseño visual no cambia, solo el zoom). */
+input, select, textarea{ font-size: 16px !important; }
+
+/* ============================================================
+   Ticket / receipt textures
+   ============================================================ */
+.card{
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 14px;
+  position: relative;
+}
+.ticket-dash{
+  position:absolute; left:16px; right:16px; top:0;
+  border-top: 2px dashed var(--line);
+}
+.muted{ color: var(--muted); }
+.small{ font-size: 0.82rem; }
+
+/* Dot-leader ledger rows: "Nombre ......... 24,50 €" */
+.ledger .ledger-row{
+  display:flex; align-items:baseline; gap:6px;
+  padding: 9px 0;
+  border-bottom: 1px dashed var(--line);
+}
+.ledger .ledger-row:last-child{ border-bottom: none; }
+.ledger-row .label{ white-space:nowrap; display:flex; align-items:center; gap:8px;}
+.ledger-row .leader{
+  flex:1;
+  border-bottom: 1px dotted var(--muted);
+  margin-bottom: 4px;
+  min-width: 12px;
+}
+.ledger-row .value{
+  font-family: var(--font-mono);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.value.credit{ color: var(--credit); }
+.value.debit{ color: var(--debit); }
+.ledger-row.clickable{ cursor: pointer; }
+.ledger-row.clickable:active{ opacity: 0.7; }
+
+/* ============================================================
+   Layout shell
+   ============================================================ */
+.app{ max-width: 640px; margin: 0 auto; padding-bottom: 90px; }
+
+.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 18px 16px 10px;
+}
+.topbar-left{ display:flex; align-items:center; gap:10px; }
+.stamp-icon{
+  font-size: 26px;
+  transform: rotate(-8deg);
+  display:inline-block;
+}
+.topbar h1{
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  margin: 0;
+  letter-spacing: 0.2px;
+}
+.topbar p{ margin:2px 0 0; }
+
+.btn{
+  border:none; border-radius: 8px; padding: 10px 16px;
+  font-weight:600; font-size:0.9rem;
+}
+.btn-small{ padding:7px 12px; font-size:0.82rem; }
+.btn-primary{ background: var(--ink); color: var(--paper-raised); }
+.btn-primary:active{ opacity:0.85; }
+.btn-ghost{ background: transparent; border:1px solid var(--line); color: var(--ink-soft); }
+.btn-ghost.active{ background: var(--stamp-bg); border-color: var(--stamp); color: var(--stamp); }
+.btn-danger{ background: var(--debit-bg); color: var(--debit); }
+.btn-icon{ background:none; border:none; font-size:1.1rem; color: var(--ink-soft); }
+
+/* ============================================================
+   Filters
+   ============================================================ */
+.filterbar{ padding: 0 16px; }
+.filter-toggle{
+  width:100%; display:flex; align-items:center; gap:8px;
+  background: var(--paper-raised); border:1px solid var(--line);
+  border-radius: 8px; padding: 9px 14px; font-weight:600; color: var(--ink-soft);
+}
+.filter-count{
+  background: var(--stamp); color:#fff; border-radius:999px;
+  font-size:0.72rem; padding:1px 7px; font-family: var(--font-mono);
+}
+.chev{ margin-left:auto; }
+.filter-panel{
+  background: var(--paper-raised); border:1px solid var(--line); border-top:none;
+  border-radius: 0 0 8px 8px; padding: 14px; margin-bottom: 10px;
+}
+.filter-row{ margin-bottom: 12px; }
+.filter-row label{ display:block; font-size:0.78rem; color: var(--muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.4px;}
+.filter-row.two-col{ display:flex; gap:10px; }
+.filter-row.two-col > div{ flex:1; }
+.filter-row input, .filter-row select{
+  width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:6px; background:#fff;
+}
+.chip-group{ display:flex; flex-wrap:wrap; gap:6px; }
+.chip{
+  border:1px solid var(--line); border-radius:999px; padding:5px 12px;
+  font-size:0.82rem; background:#fff; color: var(--ink-soft);
+}
+.chip.active{ background: var(--stamp); border-color: var(--stamp); color:#fff; }
+
+/* ============================================================
+   Tabs
+   ============================================================ */
+.tabs{
+  display:flex; gap:4px; padding: 0 16px 10px; overflow-x:auto;
+}
+.tab{
+  background:none; border:none; padding:8px 4px; font-weight:600;
+  color: var(--muted); border-bottom: 2px solid transparent; white-space:nowrap;
+  margin-right: 14px; font-size:0.9rem;
+}
+.tab.active{ color: var(--ink); border-bottom-color: var(--stamp); }
+
+.content{ padding: 4px 16px 20px; }
+.section-title{
+  font-family: var(--font-display); font-size:0.85rem; letter-spacing:0.3px;
+  margin: 18px 2px 8px; text-transform: uppercase;
+}
+
+/* ============================================================
+   Dashboard
+   ============================================================ */
+.total-card{ text-align:center; padding-top:22px; }
+.total-amount{
+  font-family: var(--font-mono); font-size: 2.1rem; font-weight:600; margin: 4px 0;
+}
+
+/* ============================================================
+   Expense list — receipt tickets
+   ============================================================ */
+.expenses-list{ display:flex; flex-direction:column; gap:10px; }
+.expense-ticket{
+  background: var(--paper-raised); border:1px solid var(--line); border-radius: var(--radius);
+  padding: 12px 14px; position:relative;
+}
+.expense-ticket:before{
+  content:""; position:absolute; left:14px; right:14px; top:0;
+  border-top: 2px dashed var(--line);
+}
+.expense-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+.expense-desc{ font-weight:600; margin:0 0 3px; }
+.expense-meta{ font-size:0.78rem; color: var(--muted); }
+.expense-amount{ font-family: var(--font-mono); font-weight:700; font-size:1.05rem; white-space:nowrap; }
+.expense-badge{
+  display:inline-block; font-size:0.72rem; border:1px solid var(--stamp); color: var(--stamp);
+  border-radius:999px; padding:2px 9px; transform: rotate(-2deg); margin-top:6px;
+}
+.empty{ text-align:center; color: var(--muted); padding: 40px 10px; }
+
+/* ============================================================
+   Participants
+   ============================================================ */
+.add-participant-row{ display:flex; gap:8px; }
+.add-participant-row input{
+  flex:1; padding:9px 10px; border:1px solid var(--line); border-radius:6px;
+}
+.avatar-dot{ width:10px; height:10px; border-radius:50%; display:inline-block; }
+
+/* ============================================================
+   Modals
+   ============================================================ */
+.modal{
+  position:fixed; inset:0; background: rgba(36,38,31,0.45);
+  display:flex; align-items:flex-end; justify-content:center; z-index: 50;
+}
+.modal-card{
+  background: var(--paper-raised); width:100%; max-width:520px;
+  border-radius: 16px 16px 0 0; max-height:90vh; display:flex; flex-direction:column;
+  animation: slideUp 0.2s ease-out;
+}
+@media (min-width: 560px){
+  .modal{ align-items:center; }
+  .modal-card{ border-radius:16px; max-height: 85vh; }
+}
+@keyframes slideUp{ from{ transform: translateY(24px); opacity:0;} to{ transform:none; opacity:1;} }
+.modal-header{
+  display:flex; justify-content:space-between; align-items:center;
+  padding: 16px; border-bottom: 1px dashed var(--line);
+}
+.modal-header h2{ font-family: var(--font-display); font-size:0.95rem; margin:0; text-transform:uppercase;}
+.modal-body{ padding: 16px; overflow-y:auto; }
+.modal-body label{
+  display:block; font-size:0.78rem; color: var(--muted); text-transform:uppercase;
+  letter-spacing:0.4px; margin: 12px 0 5px;
+}
+.modal-body label:first-child{ margin-top:0; }
+.modal-body input, .modal-body select, .modal-body textarea{
+  width:100%; padding:10px; border:1px solid var(--line); border-radius:6px; background:#fff; font-size:0.95rem;
+}
+.modal-footer{
+  display:flex; gap:10px; justify-content:flex-end; padding:14px 16px;
+  border-top:1px dashed var(--line);
+}
+
+.split-participants{ display:flex; flex-direction:column; gap:6px; }
+.split-participant-row{ display:flex; align-items:center; gap:8px; font-size:0.9rem; }
+.split-mode-row{ display:flex; gap:8px; margin-top:10px; }
+#customSplitBox{ display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+.custom-split-row{ display:flex; align-items:center; gap:8px; }
+.custom-split-row input{ width:100px; }
+.error{ color: var(--debit); font-size:0.82rem; margin-top:6px; }
+
+.detail-line{ display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed var(--line); font-size:0.9rem; }
+.detail-line:last-child{ border-bottom:none; }
+
+/* ============================================================
+   Gate / access code screen
+   ============================================================ */
+.gate{
+  position:fixed; inset:0; background: var(--paper); display:flex; align-items:center; justify-content:center; z-index:100;
+}
+.gate-card{ text-align:center; max-width:280px; }
+.gate-stamp{ font-size:40px; transform: rotate(-6deg); }
+.gate-card h1{ font-family: var(--font-display); font-size:1.1rem; }
+.gate-card input{
+  width:100%; padding:10px; border:1px solid var(--line); border-radius:6px; text-align:center;
+  font-family: var(--font-mono); font-size:1.1rem; margin: 12px 0;
+}
+
+/* ============================================================
+   Toast
+   ============================================================ */
+.toast{
+  position:fixed; bottom:20px; left:50%; transform: translateX(-50%);
+  background: var(--ink); color: var(--paper-raised); padding:10px 18px;
+  border-radius:999px; font-size:0.85rem; z-index: 200;
+}
+
+/* Bottom safe area for new expense button on mobile */
+#newExpenseBtn{ flex-shrink:0; }
+
+@media (max-width: 380px){
+  .total-amount{ font-size: 1.7rem; }
+}
